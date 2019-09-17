@@ -27,7 +27,7 @@ class App extends Component {
             Criptografia de Júlio César
           </p>
           <div>
-            {this.state.jsonInicial.map(j => { <p>{j.cifrado}</p> })}
+            {/* Mostrar aqui o resultado */}
           </div>
           <p>
             Texto decifrado
