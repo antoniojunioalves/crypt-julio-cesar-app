@@ -6,39 +6,47 @@ class App extends Component {
     jsonInicial: {
       numero_casas: 4,
       token: "64303698a48effb62677752107150d355a274937",
-      cifrado: "Antonio junio1",
+      cifrado: "Antonio1",
       // cifrado: "izir xli fiwx tperrmrk mw rsx ws sqrmwgmirx ew xs kix mx vmklx xli jmvwx xmqi. jvih fvssow",
       decifrado: "Não implementado ainda",
       resumo_criptografico: ""
     }
   }
 
-  isNumber(n) {
-    return !isNaN(parseFloat(n)) && isFinite(n);
-  }
+  criptografa(letra, qtdCasas) {
+    const codigoTabelaAscii = letra.charCodeAt()
+    // Código tabela ascii 97 = a; 98 = b; 99 = c; ...122 = z
+    if (97 <= codigoTabelaAscii && codigoTabelaAscii <= 122) {
 
-  descifrarLetra(letra, qtdCasas) {
-    let posicDecript = letra.charCodeAt()
-    posicDecript += qtdCasas
-    posicDecript = posicDecript > 122 ? (posicDecript - 123 + 97) : posicDecript
+      let letraDeslocada = codigoTabelaAscii + qtdCasas
 
-    return String.fromCharCode(posicDecript)
+      letraDeslocada = letraDeslocada > 122 ? (letraDeslocada - 123 + 97) : letraDeslocada
+
+      return String.fromCharCode(letraDeslocada)
+    } else {
+      return letra
+    }
   }
 
   decifrarTexto(jsonInicial) {
     let { cifrado, numero_casas } = jsonInicial
     cifrado = cifrado.toLowerCase()
-
     var decifrado = '';
-    console.log('qtd', numero_casas)
-    for (let i = 0; i <= cifrado.length - 1; i++) {
-      console.log('Criptografado: ', cifrado[i])
-      console.log('Decriptografado: ', this.descifrarLetra(cifrado[i], numero_casas))
 
-      decifrado += this.isNumber(cifrado[i]) ? cifrado[i] : this.descifrarLetra(cifrado[i], numero_casas)
-    }
+    decifrado = Array.from(cifrado)
+      .reduce((acumulado, letra) => {
+        console.log(this.criptografa(letra, numero_casas))
+        acumulado += this.criptografa(letra, numero_casas)
+        return acumulado
+      }, '')
+
+    // for (let i = 0; i <= cifrado.length - 1; i++) {
+    //   decifrado += this.criptografa(cifrado[i], numero_casas)
+    // }
 
     console.log(decifrado)
+
+    return decifrado
   }
 
   componentDidMount() {
