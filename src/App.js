@@ -1,19 +1,19 @@
-import React, { Component } from 'react';
-import './App.css';
+import React, { Component } from 'react'
+import './App.css'
+import sha1 from 'sha1'
 
 class App extends Component {
   state = {
-    jsonInicial: {
-      numero_casas: 4,
-      token: "64303698a48effb62677752107150d355a274937",
-      cifrado: "Antonio1",
-      // cifrado: "izir xli fiwx tperrmrk mw rsx ws sqrmwgmirx ew xs kix mx vmklx xli jmvwx xmqi. jvih fvssow",
-      decifrado: "Não implementado ainda",
-      resumo_criptografico: ""
+    answer: {
+      numero_casas: 0,
+      token: '',
+      cifrado: '',
+      decifrado: '',
+      resumo_criptografico: ''
     }
   }
 
-  criptografa(letra, qtdCasas) {
+  criptografar(letra, qtdCasas) {
     const codigoTabelaAscii = letra.charCodeAt()
     // Código tabela ascii 97 = a; 98 = b; 99 = c; ...122 = z
     if (97 <= codigoTabelaAscii && codigoTabelaAscii <= 122) {
@@ -28,43 +28,85 @@ class App extends Component {
     }
   }
 
-  decifrarTexto(jsonInicial) {
-    let { cifrado, numero_casas } = jsonInicial
+  decriptografar(letra, qtdCasas) {
+    const codigoTabelaAscii = letra.charCodeAt()
+    // Código tabela ascii 97 = a; 98 = b; 99 = c; ...122 = z
+    if (97 <= codigoTabelaAscii && codigoTabelaAscii <= 122) {
+
+      let letraDeslocada = codigoTabelaAscii - qtdCasas
+
+      letraDeslocada = letraDeslocada < 97 ? (letraDeslocada + 25) : letraDeslocada
+
+      return String.fromCharCode(letraDeslocada)
+    } else {
+      return letra
+    }
+  }
+
+  decifrarTexto(answer, criptografar = true) {
+    let { cifrado, numero_casas } = answer
     cifrado = cifrado.toLowerCase()
-    var decifrado = '';
 
-    decifrado = Array.from(cifrado)
-      .reduce((acumulado, letra) => {
-        console.log(this.criptografa(letra, numero_casas))
-        acumulado += this.criptografa(letra, numero_casas)
-        return acumulado
-      }, '')
-
-    // for (let i = 0; i <= cifrado.length - 1; i++) {
-    //   decifrado += this.criptografa(cifrado[i], numero_casas)
+    // if (criptografar) {
+    //   return Array.from(cifrado)
+    //     .reduce((acumulado, letra) => {
+    //       acumulado += this.criptografar(letra, numero_casas)
+    //       return acumulado
+    //     }, '')
+    // } else {
+    //   return Array.from(cifrado)
+    //     .reduce((acumulado, letra) => {
+    //       acumulado += this.decriptografar(letra, numero_casas)
+    //       return acumulado
+    //     }, '')
     // }
 
-    console.log(decifrado)
+    let decifrado = ''
+    if (criptografar) {
+      for (let i = 0; i <= cifrado.length - 1; i++) {
+        decifrado += this.criptografar(cifrado[i], numero_casas)
+      }
+    } else {
+      for (let i = 0; i <= cifrado.length - 1; i++) {
+        decifrado += this.decriptografar(cifrado[i], numero_casas)
+      }
+    }
 
     return decifrado
   }
 
   componentDidMount() {
-    this.decifrarTexto(this.state.jsonInicial)
-
-    fetch('https://api.codenation.dev/v1/challenge/dev-ps/generate-data?token=64303698a48effb62677752107150d355a274937')
+    // fetch('https://api.codenation.dev/v1/challenge/dev-ps/generate-data?token=64303698a48effb62677752107150d355a274937')
+    fetch('http://localhost:4001/buscarJSON')
       .then(response => {
         if (!response.ok)
           throw new Error()
 
         return response.json()
       })
-      // .then(response => {
-      //   this.setState({ ...this.state, jsonInicial: response })
-      //   this.decifrarTexto(response)
-      // })
-      .then(response => console.log(response))
+      .then(response => {
+        let { answer } = this.state
+        answer = response
+        localStorage.setItem('answer', JSON.stringify(answer));
+
+        this.setState({ ...this.state, answer })
+        const decifrado = this.decifrarTexto(answer, false)
+        const resumo_criptografico = sha1(decifrado)
+        answer = { ...answer, decifrado, resumo_criptografico }
+        this.setState({ ...this.state, answer })
+      })
       .catch((error) => console.log('3', error))
+  }
+
+  enviarJSON(answer) {
+    fetch('http://localhost:4001/encaminharJSON', {
+      method: 'post',
+      body: JSON.stringify(answer),
+      headers: { 'Content-Type': 'application/json' }
+    })
+      .then(res => console.log(res))
+      // .then(json => console.log(json))
+      .catch((error) => console.log('4', error))
   }
 
   render() {
@@ -72,14 +114,30 @@ class App extends Component {
       <div className="App">
         <header className="App-header">
           <p>
-            Criptografia de Júlio César - Quantidade de casas({this.state.numero_casas})
+            Criptografia de Júlio César - Quantidade de casas({this.state.answer.numero_casas})
           </p>
-          <p>
-            {this.state.jsonInicial.cifrado}
-          </p>
-          <p>
-            {this.state.jsonInicial.decifrado}
-          </p>
+          <div>
+            <p>Texto Original</p>
+            {this.state.answer.cifrado}
+          </div>
+          <div>
+            <p>Texto Criptografado</p>
+            {this.state.answer.decifrado}
+          </div>
+
+          <div>
+            <p>sha1</p>
+            {this.state.answer.resumo_criptografico}
+          </div>
+          <button onClick={() => console.log(this.decifrarTexto(this.state.answer))}>
+            Criptografar
+          </button>
+          <button onClick={() => console.log(this.decifrarTexto(this.state.answer, false))}>
+            Decriptgrafar
+          </button>
+          <button onClick={() => console.log(this.enviarJSON(this.state.answer))}>
+            Enviar JSON
+          </button>
 
         </header>
       </div>
