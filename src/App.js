@@ -1,6 +1,10 @@
 import React, { Component } from 'react'
 import './App.css'
 import sha1 from 'sha1'
+import FileUploadForm from './Enviar'
+
+// const URL_ENVIAR = 'https://api.codenation.dev/v1/challenge/dev-ps/submit-solution?token=SEU_TOKEN'
+const URL_API = 'http://localhost:4001'
 
 class App extends Component {
   state = {
@@ -76,8 +80,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    // fetch('https://api.codenation.dev/v1/challenge/dev-ps/generate-data?token=64303698a48effb62677752107150d355a274937')
-    fetch('http://localhost:4001/buscarJSON')
+    fetch(`${URL_API}/buscarJSON`)
       .then(response => {
         if (!response.ok)
           throw new Error()
@@ -98,8 +101,8 @@ class App extends Component {
       .catch((error) => console.log('3', error))
   }
 
-  enviarJSON(answer) {
-    fetch('http://localhost:4001/encaminharJSON', {
+  salvarArquivoJSON(answer) {
+    fetch(`${URL_API}/salvarJSON`, {
       method: 'post',
       body: JSON.stringify(answer),
       headers: { 'Content-Type': 'application/json' }
@@ -111,35 +114,39 @@ class App extends Component {
 
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <p>
-            Criptografia de Júlio César - Quantidade de casas({this.state.answer.numero_casas})
+      <div>
+        <div className="App">
+          <header className="App-header">
+            <p>
+              Criptografia de Júlio César - Quantidade de casas({this.state.answer.numero_casas})
           </p>
-          <div>
-            <p>Texto Original</p>
-            {this.state.answer.cifrado}
-          </div>
-          <div>
-            <p>Texto Criptografado</p>
-            {this.state.answer.decifrado}
-          </div>
+            <div>
+              <p>Texto Original</p>
+              {this.state.answer.cifrado}
+            </div>
+            <div>
+              <p>Texto Criptografado</p>
+              {this.state.answer.decifrado}
+            </div>
 
-          <div>
-            <p>sha1</p>
-            {this.state.answer.resumo_criptografico}
-          </div>
-          <button onClick={() => console.log(this.decifrarTexto(this.state.answer))}>
-            Criptografar
+            <div>
+              <p>sha1</p>
+              {this.state.answer.resumo_criptografico}
+            </div>
+            <button onClick={() => console.log(this.decifrarTexto(this.state.answer))}>
+              Criptografar
           </button>
-          <button onClick={() => console.log(this.decifrarTexto(this.state.answer, false))}>
-            Decriptgrafar
+            <button onClick={() => console.log(this.decifrarTexto(this.state.answer, false))}>
+              Decriptgrafar
           </button>
-          <button onClick={() => console.log(this.enviarJSON(this.state.answer))}>
-            Enviar JSON
+            <button onClick={() => console.log(this.salvarArquivoJSON(this.state.answer))}>
+              Enviar JSON
           </button>
 
-        </header>
+          </header>
+
+        </div>
+        <FileUploadForm />
       </div>
     )
   }
